@@ -1,0 +1,104 @@
+LAMMPS (23 Jun 2022 - Update 2)
+# This LAMMPS input script simulates the pouring of granular material into a rectangular box
+
+atom_style  	sphere
+boundary 	fm fm fm
+newton  	off
+comm_modify 	vel yes
+
+region  	simulation_box block -30 30 -30 30 0 60
+region  	inject1 block -3 -1 -3 -1 57 59
+region  	inject2 block -3 1 1 3 57 59
+region  	inject3 block 1 3 1 3 57 59
+region  	inject4 block 1 3 -3 -1 57 59
+create_box 	2 simulation_box
+Created orthogonal box = (-30 -30 0) to (30 30 60)
+  1 by 2 by 2 MPI processor grid
+
+neighbor 	0.2 bin
+neigh_modify 	delay 0
+
+pair_style	granular
+pair_coeff 	* * hooke 15000 500 tangential linear_nohistory 1.0 0.4 damping mass_velocity
+
+timestep 	0.0001
+fix  		1 all nve/sphere
+fix  		2 all gravity 1.0 spherical 0.0 -180.0
+
+# wall
+fix 		mywall1 all wall/gran/region hooke/history 15000 NULL 500 NULL 0.5 0 region simulation_box
+
+# printing and visualisation
+compute  	rot_kin all erotate/sphere # rotational kinetic energy of the spherical particles
+thermo_style 	custom step atoms ke c_rot_kin
+thermo  	10000
+thermo_modify 	lost ignore norm no # atom number non-constant
+compute_modify 	thermo_temp dynamic/dof yes
+dump 		mydmp all atom 1000 dump_j1.lammpstrj
+
+variable 	varloop loop 10000 # loop with 10000 step
+label 		loop
+variable	seed1 equal floor(${varloop}*34512/10000) # use different seed every times
+variable	seed1 equal floor(1*34512/10000) 
+variable	seed2 equal floor(${varloop}*14585/10000) # use different seed every times
+variable	seed2 equal floor(1*14585/10000) 
+variable	seed3 equal floor(${varloop}*25894/10000) # use different seed every times
+variable	seed3 equal floor(1*25894/10000) 
+variable	seed4 equal floor(${varloop}*89541/10000) # use different seed every times
+variable	seed4 equal floor(1*89541/10000) 
+fix  		mypour1 all pour 1 1 ${seed1} region inject1 # insert one particle at a time
+fix  		mypour1 all pour 1 1 3 region inject1 
+Particle insertion: 3 every 20000 steps, 1 by step 1
+fix  		mypour2 all pour 1 2 ${seed2} region inject2 # insert one particle at a time
+fix  		mypour2 all pour 1 2 1 region inject2 
+Particle insertion: 7 every 20000 steps, 1 by step 1
+fix  		mypour3 all pour 1 1 ${seed3} region inject3 # insert one particle at a time
+fix  		mypour3 all pour 1 1 2 region inject3 
+Particle insertion: 3 every 20000 steps, 1 by step 1
+fix  		mypour4 all pour 1 2 ${seed4} region inject4 # insert one particle at a time
+fix  		mypour4 all pour 1 2 8 region inject4 
+Particle insertion: 3 every 20000 steps, 1 by step 1
+run  		2000 # short run after particle insersion
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.2
+  ghost atom cutoff = 1.2
+  binsize = 0.6, bins = 100 100 100
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair granular, perpetual
+      attributes: half, newton off, size
+      pair build: half/size/bin/newtoff
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 1.81 | 1.81 | 1.81 Mbytes
+   Step        Atoms        KinEng       c_rot_kin   
+         0           0  -0              0            
+      2000           4   2.8326986      0            
+Loop time of 0.157069 on 4 procs for 2000 steps with 4 atoms
+
+Performance: 110015.099 tau/day, 12733.229 timesteps/s
+41.4% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0020323  | 0.0021126  | 0.0022404  |   0.2 |  1.35
+Neigh   | 0.0014128  | 0.0015023  | 0.0015812  |   0.2 |  0.96
+Comm    | 0.0043675  | 0.004474   | 0.0046399  |   0.2 |  2.85
+Output  | 0.0015753  | 0.0018751  | 0.0023051  |   0.6 |  1.19
+Modify  | 0.0067547  | 0.0074657  | 0.0086629  |   0.9 |  4.75
+Other   |            | 0.1396     |            |       | 88.90
+
+Nlocal:              1 ave           2 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:              0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 4
+Dangerous builds = 0
