@@ -1,14 +1,14 @@
 LAMMPS data file from restart file: timestep = 1000000, procs = 1
 
-320 atoms
+32000 atoms #number of atoms to create
 
-2 atom types
+2 atom types #creates two types of atoms represented by two different colors
 
-0 40 xlo xhi
-0 30 ylo yhi
+0 40 xlo xhi #universal bounds of our simulation
+0 20 ylo yhi
 0 37.2886 zlo zhi
 
-Atoms
+Atoms 
 
 1 1 1 1 19.4061 6.46569 14.5438 33 0 0
 2 1 1 1 19.8205 4.24752 17.4977 33 1 0

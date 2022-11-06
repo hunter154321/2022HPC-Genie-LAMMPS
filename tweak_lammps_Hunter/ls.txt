@@ -1,0 +1,7 @@
+data.chute
+dump.lammpstrj
+in.chute.txt
+lammps_gran.sh
+log.lammps
+ls.txt
+README.md

@@ -9,7 +9,7 @@
 
 
 #Using openmpi
-module add openmpi/4.1.1
+module add openmpi/4.1.2
 
 
 

@@ -1,88 +1,114 @@
 LAMMPS (23 Jun 2022 - Update 2)
-# LAMMPS benchmark of granular flow
-# chute flow of 32000 atoms with frozen base at 26 degrees
+# This LAMMPS input script simulates the pouring of granular material into a rectangular box
 
-units		lj
-atom_style	sphere
-boundary	p p fs
-newton		off
-comm_modify	vel yes
+atom_style  	sphere    #determine the shape of our atoms
+boundary 	fm fm fm   #Set the style of boundaries for the global simulation box in each dimension. fm =  non-periodic and fixed and shrink-wrapped with a minimum value
+newton  	off   #turns off newtons 3rd law, very cool to say outloud! saves computational power
+comm_modify 	vel yes   #do or do not communicate velocity info with ghost atoms
 
-read_data	data.chute
-Reading data file ...
-  orthogonal box = (0 0 0) to (40 20 37.2886)
-  2 by 1 by 2 MPI processor grid
-  reading atoms ...
-  32000 atoms
-  reading velocities ...
-  32000 velocities
-  read_data CPU = 0.295 seconds
+region          silo cylinder z 0 5 30 -5.0 0   #attempt at making a cylinder
+region  	simulation_box block -30 30 -30 30 0 60    #determines the demensions of our box/structure
+region  	inject1 block -3 -1 -3 -1 57 59   #inject1, 2 ,3, and 4 are all varibles that hold places that atoms will spawn from
+region  	inject2 block -3 1 1 3 57 59
+region  	inject3 block 1 3 1 3 57 59
+region  	inject4 block 1 3 -3 -1 57 59
+create_box 	2 simulation_box   #creates simulation_box in the simulation
+Created orthogonal box = (-30 -30 0) to (30 30 60)
+  1 by 1 by 1 MPI processor grid
 
-pair_style	gran/hooke/history 200000.0 NULL 50.0 NULL 0.5 0
-pair_coeff	* *
+neighbor 	0.2 bin #x=skin, y=style # All atom pairs within a neighbor cutoff distance equal to the their force cutoff plus the skin distance
+neigh_modify 	delay 0  # parameters that affect the building and use of pairwise neighbor lists
 
-neighbor	0.1 bin
-neigh_modify	every 1 delay 0
+pair_style	granular #sets the style of your pairs
+pair_coeff 	* * hooke 15000 500 tangential linear_nohistory 1.0 0.4 damping mass_velocity #sets charateristics about your pairs such as thier force fields or space they occupy
 
-timestep	0.0001
+timestep 	0.0001   #sets timestep size
+fix  		1 all nve/sphere #tells lammps to update sphere atoms position, velocity, ect every time step
+fix  		2 all gravity 10.0 spherical 0.0 -180.0   #sets gravity for all atoms
 
-group		bottom type 2
-912 atoms in group bottom
-group		active subtract all bottom
-31088 atoms in group active
-neigh_modify	exclude group bottom bottom
+# wall
+fix 		mywall1 all wall/gran/region hooke/history 15000 NULL 500 NULL 0.5 0 region simulation_box
 
-fix		1 all gravity 1.0 chute 26.0
-fix		2 bottom freeze
-fix		3 active nve/sphere
+# printing and visualisation
+compute  	rot_kin all erotate/sphere # rotational kinetic energy of the spherical particles
+thermo_style 	custom step atoms ke c_rot_kin
+thermo  	10000
+thermo_modify 	lost ignore norm no # atom number non-constant
+compute_modify 	thermo_temp dynamic/dof yes
+dump 		mydmp all atom 1000 dump_j1.lammpstrj
 
-compute		1 all erotate/sphere
-thermo_style	custom step atoms ke c_1 vol
-thermo_modify	norm no
-thermo		100
-dump mydmp all atom 1000 dump.lammpstrj
-run		100
+variable 	varloop loop 10000 # loop with 10000 step #defines and determines how many steps are in our loop
+label 		loop #start of loop
+variable	seed1 equal floor(${varloop}*34512/10000) # use different seed every times
+variable	seed1 equal floor(1*34512/10000) 
+variable	seed2 equal floor(${varloop}*14585/10000) # use different seed every times
+variable	seed2 equal floor(1*14585/10000) 
+variable	seed3 equal floor(${varloop}*25894/10000) # use different seed every times
+variable	seed3 equal floor(1*25894/10000) 
+variable	seed4 equal floor(${varloop}*89541/10000) # use different seed every times
+variable	seed4 equal floor(1*89541/10000) 
+fix  		mypour1 all pour 2000 1 ${seed1} region inject1 # insert one particle at a time #pours x number of type y atoms at region1, pours over time
+fix  		mypour1 all pour 2000 1 3 region inject1 
+Particle insertion: 3 every 6325 steps, 2000 by step 4212451
+fix  		mypour2 all pour 2000 2 ${seed2} region inject2 # insert one particle at a time
+fix  		mypour2 all pour 2000 2 1 region inject2 
+Particle insertion: 7 every 6325 steps, 2000 by step 1802626
+fix  		mypour3 all pour 2000 1 ${seed3} region inject3 # insert one particle at a time
+fix  		mypour3 all pour 2000 1 2 region inject3 
+Particle insertion: 3 every 6325 steps, 2000 by step 4212451
+fix  		mypour4 all pour 2000 2 ${seed4} region inject4 # insert one particle at a time
+fix  		mypour4 all pour 2000 2 8 region inject4 
+Particle insertion: 3 every 6325 steps, 2000 by step 4212451
+run  		100000 # short run after particle insersion
 Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
-  master list distance cutoff = 1.1
-  ghost atom cutoff = 1.1
-  binsize = 0.55, bins = 73 37 68
+  master list distance cutoff = 1.2
+  ghost atom cutoff = 1.2
+  binsize = 0.6, bins = 100 100 100
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
-  (1) pair gran/hooke/history, perpetual
-      attributes: half, newton off, size, history
+  (1) pair granular, perpetual
+      attributes: half, newton off, size
       pair build: half/size/bin/newtoff
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 11.89 | 11.9 | 11.9 Mbytes
-   Step        Atoms        KinEng          c_1           Volume    
-         0       32000   784139.13      1601.1263      29833.783    
-       100       32000   784292.08      1571.0968      29834.707    
-Loop time of 0.249938 on 4 procs for 100 steps with 32000 atoms
+Per MPI rank memory allocation (min/avg/max) = 5.214 | 5.214 | 5.214 Mbytes
+   Step        Atoms        KinEng       c_rot_kin   
+         0           0  -0              0            
+     10000          32   1074.9873      0            
+     20000          64   4220.4012      0            
+     30000          80   7571.4346      0.66658746   
+     40000         112   8609.828       106.51915    
+     50000         128   7903.9299      180.4072     
+     60000         160   8963.4433      192.70357    
+     70000         192   8932.4346      256.19237    
+     80000         208   9242.7123      232.49338    
+     90000         240   9480.066       255.03805    
+    100000         256   9209.5726      284.17913    
+Loop time of 5.56855 on 1 procs for 100000 steps with 256 atoms
 
-Performance: 3456.861 tau/day, 400.100 timesteps/s
-84.0% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 155156.998 tau/day, 17957.986 timesteps/s
+84.9% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.10407    | 0.11228    | 0.11871    |   1.7 | 44.92
-Neigh   | 0.020461   | 0.020838   | 0.021121   |   0.2 |  8.34
-Comm    | 0.051686   | 0.052783   | 0.0548     |   0.5 | 21.12
-Output  | 0.00034905 | 0.00044475 | 0.00052622 |   0.0 |  0.18
-Modify  | 0.03789    | 0.038669   | 0.039325   |   0.3 | 15.47
-Other   |            | 0.02492    |            |       |  9.97
+Pair    | 0.23225    | 0.23225    | 0.23225    |   0.0 |  4.17
+Neigh   | 3.4849     | 3.4849     | 3.4849     |   0.0 | 62.58
+Comm    | 0.2428     | 0.2428     | 0.2428     |   0.0 |  4.36
+Output  | 0.076516   | 0.076516   | 0.076516   |   0.0 |  1.37
+Modify  | 1.2177     | 1.2177     | 1.2177     |   0.0 | 21.87
+Other   |            | 0.3144     |            |       |  5.65
 
-Nlocal:           8000 ave        8008 max        7992 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-Nghost:           2439 ave        2450 max        2428 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-Neighs:        29500.5 ave       30488 max       28513 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
+Nlocal:            256 ave         256 max         256 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:             68 ave          68 max          68 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 118002
-Ave neighs/atom = 3.6875625
-Neighbor list builds = 2
+Total # of neighbors = 68
+Ave neighs/atom = 0.265625
+Neighbor list builds = 2946
 Dangerous builds = 0
-Total wall time: 0:00:00
