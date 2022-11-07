@@ -10,7 +10,8 @@ Our goal is to model and visualize grains flowing into a grain silo using the La
 
 # About LAMMPS
 
-Large-scale Atomic/Molecular Massively Parallel Simulator (LAMMPS) is an open-source molecular dynamics software that makes use of Message Passing Interface (MPI) for parallel particle simulation. LAMMPS can be used to model biomolecules, solid-state materials, and coarse grain matters. Source 
+<img src="https://github.com/hunter154321/2022HPC-Genie-LAMMPS/blob/master/LAMMPS_graph.gif" align="right" alt="Simulation of grains falling into a silo" width="350px"/>
+Large-scale Atomic/Molecular Massively Parallel Simulator (LAMMPS) is an open-source molecular dynamics software that makes use of Message Passing Interface (MPI) for parallel particle simulation. LAMMPS can be used to model biomolecules, solid-state materials, and coarse grain matters.
 
 For the purpose of this Hackathon, we decided to use LAMMPS to carry out a Granular Chute Flow simulation of grain particles flowing into a cylindrical silo.
 
