@@ -1,5 +1,29 @@
+# Thus repository tracks the progress of our HPC in the City: Dallas '23 Hackathon project.
+
 # Team Genie
 
-Thus repository tracks the progress of our HPC in the City: Dallas '23 project. The goal of the project is to create a Granular Chute Simulation of Grains flowing into a grain silo.
+![BB](https://github.com/hunter154321/2022HPC-Genie-LAMMPS/blob/master/Hackhpc_img.jpg)
 
-![BB]()
+# Our Goal
+
+Our goal is to model and visualize grains flowing into a grain silo using the Large-scale Atomic/Molecular Massively Parallel Simulator (LAMMPS) software.
+
+# About LAMMPS
+
+Large-scale Atomic/Molecular Massively Parallel Simulator (LAMMPS) is an open-source molecular dynamics software that makes use of Message Passing Interface (MPI) for parallel particle simulation. LAMMPS can be used to model biomolecules, solid-state materials, and coarse grain matters. Source 
+
+For the purpose of this Hackathon, we decided to use LAMMPS to carry out a Granular Chute Flow simulation of grain particles flowing into a cylindrical silo.
+
+(References: https://www.lammps.org/#gsc.tab=0)
+
+
+# Resources
+
+- Google Cloud
+- Cloudy Cluster HPC
+- Github
+- SLURM Scripts & MPI (to automatically launch CC nodes)
+- LAMMPS Program (for simulation of grain flows)
+- OVITO (for visualization of LAMMPS outputs)
+- Bash/CLI
+
