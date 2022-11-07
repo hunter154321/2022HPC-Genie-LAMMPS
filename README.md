@@ -1,4 +1,4 @@
-# Thus repository tracks the progress of our HPC in the City: Dallas '23 Hackathon project.
+# HPC in the City: Dallas '23 Hackathon project.
 
 # Team Genie
 
